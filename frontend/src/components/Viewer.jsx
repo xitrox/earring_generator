@@ -79,12 +79,12 @@ export default function Viewer({ heightMapUrl, params }) {
 
     return (
         <div className="w-full h-full bg-slate-950 relative">
-            <Canvas shadows camera={{ position: [0, 20, 20], fov: 45 }}>
-                <fog attach="fog" args={['#020617', 10, 50]} />
-                <ambientLight intensity={0.6} />
-                <directionalLight position={[10, 10, 5]} intensity={1.5} castShadow />
-                <directionalLight position={[-5, 5, -5]} intensity={0.5} />
-                <spotLight position={[-10, 10, -5]} intensity={0.8} />
+            <Canvas shadows camera={{ position: [15, 15, 15], fov: 50 }}>
+                <fog attach="fog" args={['#020617', 10, 60]} />
+                <ambientLight intensity={0.7} />
+                <directionalLight position={[10, 15, 10]} intensity={1.8} castShadow />
+                <directionalLight position={[-5, 10, -5]} intensity={0.6} />
+                <spotLight position={[0, 20, 0]} intensity={0.5} />
 
                 <Suspense fallback={null}>
                     <RealEarringMesh modelUrl={modelUrl} />

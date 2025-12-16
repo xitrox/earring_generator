@@ -16,6 +16,12 @@ def rasterize_polygon_to_png(polygon, diameter_mm, resolution=1024):
     Returns:
         PIL.Image: Grayscale image (mode 'L'), 0=background, 255=pattern
     """
+    # Validate polygon
+    if polygon is None or polygon.is_empty:
+        print("Warning: Empty polygon passed to rasterizer")
+        # Return blank image
+        return Image.new("L", (resolution, resolution), 0)
+
     # Create blank image
     image = Image.new("L", (resolution, resolution), 0)
     draw = ImageDraw.Draw(image)
@@ -48,8 +54,14 @@ def rasterize_polygon_to_png(polygon, diameter_mm, resolution=1024):
         # Draw exterior (the main shape)
         try:
             exterior_coords = list(poly.exterior.coords)
+            if len(exterior_coords) < 3:
+                print(f"Warning: Polygon has too few coordinates: {len(exterior_coords)}")
+                continue
+
             pixel_coords = transform_coords(exterior_coords)
-            draw.polygon(pixel_coords, fill=255, outline=255)
+
+            # Draw with both fill and outline for better visibility
+            draw.polygon(pixel_coords, fill=255, outline=255, width=1)
 
             # Draw holes (interiors) - these should be "cut out" (black)
             for interior in poly.interiors:
@@ -57,9 +69,17 @@ def rasterize_polygon_to_png(polygon, diameter_mm, resolution=1024):
                 pixel_coords = transform_coords(interior_coords)
                 draw.polygon(pixel_coords, fill=0, outline=0)
         except Exception as e:
-            # Skip invalid polygons
+            # Skip invalid polygons but log it
             print(f"Warning: Could not rasterize polygon: {e}")
+            import traceback
+            traceback.print_exc()
             continue
+
+    # Debug: Check if image is completely black
+    import numpy as np
+    img_array = np.array(image)
+    if img_array.max() == 0:
+        print(f"WARNING: Rasterized image is completely black! Polygon area: {polygon.area if hasattr(polygon, 'area') else 'N/A'}")
 
     return image
 

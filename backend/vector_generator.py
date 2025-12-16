@@ -2,7 +2,8 @@ import numpy as np
 from shapely.geometry import Point, LineString, Polygon, MultiPolygon
 from shapely.ops import unary_union
 
-def generate_mandala_vector(seed, diameter_mm=12.0):
+def generate_mandala_vector(seed, diameter_mm=12.0, symmetry=None, complexity=None,
+                           pattern_types=None, line_thickness=None):
     """
     Generate mandala pattern as 2D vector polygons using shapely.
     This replaces the raster heightmap approach with clean vector geometry.
@@ -10,6 +11,11 @@ def generate_mandala_vector(seed, diameter_mm=12.0):
     Args:
         seed: Random seed for reproducibility
         diameter_mm: Physical diameter in millimeters
+        symmetry: Optional - 6, 8, or 12 (if None, randomize)
+        complexity: Optional - number of components 1-5 (if None, randomize 3-5)
+        pattern_types: Optional - list of enabled types ['ring', 'ray', 'petal_curve', 'dot_ring']
+                      (if None, all types enabled)
+        line_thickness: Optional - (min, max) tuple in mm (if None, use defaults 0.25-0.5)
 
     Returns:
         shapely.geometry.Polygon or MultiPolygon: The mandala pattern in mm coordinates
@@ -29,9 +35,24 @@ def generate_mandala_vector(seed, diameter_mm=12.0):
     boundary = center.buffer(radius_mm, quad_segs=quad_segs)
 
     # Generative parameters - OPTIMIZED FOR 0.2MM NOZZLE PRINTING
-    # Removed 16-fold symmetry (too fine), reduced component count for cleaner prints
-    symmetry = np.random.choice([6, 8, 12])  # Max 12-fold instead of 16
-    num_components = np.random.randint(3, 6)  # 3-5 components instead of 4-8 (less busy)
+    # User can override these or let them randomize
+
+    # Symmetry: user choice or random
+    if symmetry is None:
+        symmetry = np.random.choice([6, 8, 12])
+
+    # Complexity: user choice or random (1-5 scale maps to num_components)
+    if complexity is None:
+        num_components = np.random.randint(3, 6)  # Default: 3-5 components
+    else:
+        # Map complexity 1-5 to component count
+        num_components = max(1, min(5, complexity))
+
+    # Pattern types: user choice or all enabled
+    if pattern_types is None:
+        enabled_types = ['ring', 'ray', 'petal_curve', 'dot_ring']
+    else:
+        enabled_types = pattern_types if pattern_types else ['ring']  # At least one type
 
     # Collect all pattern polygons
     pattern_parts = []
@@ -45,11 +66,17 @@ def generate_mandala_vector(seed, diameter_mm=12.0):
 
     # Generate components - with print-friendly thickness
     for _ in range(num_components):
-        shape_type = np.random.choice(['ring', 'ray', 'petal_curve', 'dot_ring'])
-        # CRITICAL: Minimum 0.25mm thickness for 0.2mm nozzle (was 0.015 * 12mm = 0.18mm, too thin!)
-        # New range: 0.25mm to 0.5mm for a 12mm earring (safer for printing)
-        min_thickness = max(0.25, diameter_mm * 0.02)  # At least 0.25mm
-        max_thickness = diameter_mm * 0.04  # Up to 0.04 * diameter
+        # Choose shape type from enabled types
+        shape_type = np.random.choice(enabled_types)
+
+        # Line thickness: user choice or auto-calculated
+        if line_thickness is None:
+            # CRITICAL: Minimum 0.25mm thickness for 0.2mm nozzle
+            min_thickness = max(0.25, diameter_mm * 0.02)  # At least 0.25mm
+            max_thickness = diameter_mm * 0.04  # Up to 0.04 * diameter
+        else:
+            min_thickness, max_thickness = line_thickness
+
         thickness = np.random.uniform(min_thickness, max_thickness)
 
         component = None

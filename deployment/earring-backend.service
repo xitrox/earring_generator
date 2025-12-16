@@ -1,0 +1,16 @@
+[Unit]
+Description=Earring Generator Backend API
+After=network.target
+
+[Service]
+Type=simple
+User=xi
+WorkingDirectory=/home/xi/projects/earring_generator/backend
+Environment="PATH=/home/xi/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="USE_VECTOR_GENERATOR=true"
+ExecStart=/usr/bin/python3 -m gunicorn --bind 127.0.0.1:5000 --workers 2 --timeout 120 app:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

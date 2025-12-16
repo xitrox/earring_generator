@@ -46,9 +46,34 @@ def preview():
     seed = request.args.get('seed', 'default')
     diameter = float(request.args.get('diameter', 12.0))
 
+    # Optional pattern parameters
+    symmetry = request.args.get('symmetry', None)
+    symmetry = int(symmetry) if symmetry and symmetry != 'random' else None
+
+    complexity = request.args.get('complexity', None)
+    complexity = int(complexity) if complexity else None
+
+    # Pattern types (comma-separated)
+    pattern_types_str = request.args.get('pattern_types', None)
+    pattern_types = pattern_types_str.split(',') if pattern_types_str else None
+
+    # Line thickness (format: "min,max")
+    line_thickness_str = request.args.get('line_thickness', None)
+    line_thickness = None
+    if line_thickness_str:
+        min_t, max_t = map(float, line_thickness_str.split(','))
+        line_thickness = (min_t, max_t)
+
     if USE_VECTOR_GENERATOR:
         # Vector approach: generate polygon, then rasterize for preview
-        polygon = vector_generator.generate_mandala_vector(seed, diameter_mm=diameter)
+        polygon = vector_generator.generate_mandala_vector(
+            seed,
+            diameter_mm=diameter,
+            symmetry=symmetry,
+            complexity=complexity,
+            pattern_types=pattern_types,
+            line_thickness=line_thickness
+        )
         img = vector_rasterizer.rasterize_polygon_to_png(polygon, diameter_mm=diameter)
     else:
         # Raster approach (legacy)
@@ -73,11 +98,34 @@ def preview3d():
     height = float(request.args.get('height', 2.0))
     relief_depth = float(request.args.get('relief_depth', 0.8))
 
+    # Optional pattern parameters (same as preview)
+    symmetry = request.args.get('symmetry', None)
+    symmetry = int(symmetry) if symmetry and symmetry != 'random' else None
+
+    complexity = request.args.get('complexity', None)
+    complexity = int(complexity) if complexity else None
+
+    pattern_types_str = request.args.get('pattern_types', None)
+    pattern_types = pattern_types_str.split(',') if pattern_types_str else None
+
+    line_thickness_str = request.args.get('line_thickness', None)
+    line_thickness = None
+    if line_thickness_str:
+        min_t, max_t = map(float, line_thickness_str.split(','))
+        line_thickness = (min_t, max_t)
+
     base_height = height - relief_depth
 
     if USE_VECTOR_GENERATOR:
         # Vector approach: generate polygon, extrude to 3D
-        polygon = vector_generator.generate_mandala_vector(seed, diameter_mm=diameter)
+        polygon = vector_generator.generate_mandala_vector(
+            seed,
+            diameter_mm=diameter,
+            symmetry=symmetry,
+            complexity=complexity,
+            pattern_types=pattern_types,
+            line_thickness=line_thickness
+        )
         scene = vector_exporter.create_stls_from_vector(
             polygon, diameter, base_height, relief_depth
         )
@@ -111,11 +159,31 @@ def export_stls():
     height = float(data.get('height', 2.0)) # Total height
     relief_depth = float(data.get('relief_depth', 1.0))
 
+    # Optional pattern parameters
+    symmetry = data.get('symmetry', None)
+    symmetry = int(symmetry) if symmetry and symmetry != 'random' else None
+
+    complexity = data.get('complexity', None)
+    complexity = int(complexity) if complexity else None
+
+    pattern_types = data.get('pattern_types', None)
+
+    line_thickness = data.get('line_thickness', None)
+    if line_thickness and isinstance(line_thickness, list):
+        line_thickness = tuple(line_thickness)
+
     base_height = height - relief_depth
 
     if USE_VECTOR_GENERATOR:
         # Vector approach: generate polygon, extrude to 3D
-        polygon = vector_generator.generate_mandala_vector(seed, diameter_mm=diameter)
+        polygon = vector_generator.generate_mandala_vector(
+            seed,
+            diameter_mm=diameter,
+            symmetry=symmetry,
+            complexity=complexity,
+            pattern_types=pattern_types,
+            line_thickness=line_thickness
+        )
         scene = vector_exporter.create_stls_from_vector(
             polygon, diameter, base_height, relief_depth
         )

@@ -8,6 +8,11 @@ function App() {
     height: 2.0,
     relief_depth: 0.8,
     seed: Math.random().toString(36).substring(7),
+    // Pattern controls
+    symmetry: 'random', // 6, 8, 12, or 'random'
+    complexity: 4, // 1-5 (number of components)
+    pattern_types: ['ring', 'ray', 'petal_curve', 'dot_ring'], // enabled types
+    line_thickness: [0.25, 0.5], // [min, max] in mm
   });
 
   const [heightMapUrl, setHeightMapUrl] = useState(null);
@@ -16,9 +21,17 @@ function App() {
   const fetchPreview = useCallback(async () => {
     setLoading(true);
     try {
-      // Add timestamp to prevent caching and pass diameter for vector generation
-      const url = `/api/preview?seed=${params.seed}&diameter=${params.diameter}&t=${Date.now()}`;
-      // In a real app we might fetch the image blob to control caching better
+      // Build URL with all pattern parameters
+      const urlParams = new URLSearchParams({
+        seed: params.seed,
+        diameter: params.diameter,
+        symmetry: params.symmetry,
+        complexity: params.complexity,
+        pattern_types: params.pattern_types.join(','),
+        line_thickness: params.line_thickness.join(','),
+        t: Date.now(),
+      });
+      const url = `/api/preview?${urlParams}`;
       const res = await fetch(url);
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -28,7 +41,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [params.seed, params.diameter]);
+  }, [params]);
 
   useEffect(() => {
     fetchPreview();

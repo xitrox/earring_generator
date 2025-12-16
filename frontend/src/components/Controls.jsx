@@ -72,6 +72,66 @@ export default function Controls({ params, setParams, onNext, onPrev, onSave, on
                     />
                     <div className="text-right text-sm text-slate-300">{params.relief_depth} mm</div>
                 </div>
+
+                <hr className="border-slate-700" />
+
+                {/* Pattern Controls */}
+                <div className="space-y-2">
+                    <label className="text-xs text-slate-400 uppercase font-semibold">Symmetry</label>
+                    <select
+                        name="symmetry"
+                        value={params.symmetry}
+                        onChange={(e) => setParams(prev => ({ ...prev, symmetry: e.target.value }))}
+                        className="w-full bg-slate-700 text-white rounded px-3 py-2 text-sm"
+                    >
+                        <option value="random">Random</option>
+                        <option value="6">6-fold</option>
+                        <option value="8">8-fold</option>
+                        <option value="12">12-fold</option>
+                    </select>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-xs text-slate-400 uppercase font-semibold">
+                        Complexity <span className="text-slate-500">(elements)</span>
+                    </label>
+                    <input
+                        type="range" name="complexity" min="1" max="5" step="1"
+                        value={params.complexity}
+                        onChange={(e) => setParams(prev => ({ ...prev, complexity: parseInt(e.target.value) }))}
+                        className="w-full accent-teal-500 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="text-right text-sm text-slate-300">
+                        {params.complexity} {params.complexity === 1 ? 'element' : 'elements'}
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-xs text-slate-400 uppercase font-semibold">Pattern Types</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {['ring', 'ray', 'petal_curve', 'dot_ring'].map(type => (
+                            <label key={type} className="flex items-center gap-2 text-xs cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={params.pattern_types.includes(type)}
+                                    onChange={(e) => {
+                                        const newTypes = e.target.checked
+                                            ? [...params.pattern_types, type]
+                                            : params.pattern_types.filter(t => t !== type);
+                                        // Ensure at least one type is selected
+                                        if (newTypes.length > 0) {
+                                            setParams(prev => ({ ...prev, pattern_types: newTypes }));
+                                        }
+                                    }}
+                                    className="accent-teal-500"
+                                />
+                                <span className="text-slate-300 capitalize">
+                                    {type === 'petal_curve' ? 'Petals' : type === 'dot_ring' ? 'Dots' : type}
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Actions */}
