@@ -2,6 +2,7 @@ import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { apiUrl } from '../config';
 
 // Real 3D mesh loader - shows actual vector geometry with sharp edges!
 function RealEarringMesh({ modelUrl }) {
@@ -49,7 +50,7 @@ export default function Viewer({ heightMapUrl, params }) {
         const fetchModel = async () => {
             setLoading(true);
             try {
-                const url = `/api/preview3d?seed=${params.seed}&diameter=${params.diameter}&height=${params.height}&relief_depth=${params.relief_depth}&t=${Date.now()}`;
+                const url = apiUrl(`/api/preview3d?seed=${params.seed}&diameter=${params.diameter}&height=${params.height}&relief_depth=${params.relief_depth}&t=${Date.now()}`);
                 const res = await fetch(url);
                 const blob = await res.blob();
                 const objectUrl = URL.createObjectURL(blob);

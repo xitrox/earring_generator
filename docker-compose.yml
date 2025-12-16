@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  earring-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: earring-api
+    restart: unless-stopped
+    # No ports exposed to host - only accessible from frontend container
+    expose:
+      - "9447"
+    environment:
+      - USE_VECTOR_GENERATOR=true
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9447/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - earring-net
+
+  earring-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      # No build args needed - uses relative URLs to proxy to backend
+    container_name: earring-frontend
+    restart: unless-stopped
+    ports:
+      - "8447:8447"
+    depends_on:
+      - earring-api
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8447/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - earring-net
+
+networks:
+  earring-net:
+    driver: bridge

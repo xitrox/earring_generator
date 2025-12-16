@@ -1,120 +1,209 @@
-# 💎 Earring Generator
+# Earring Generator
 
-A web-based tool for generating dual-color mandala earring designs optimized for multi-material 3D printing (AMS-compatible).
+A web-based generative earring designer that creates unique mandala patterns for 3D printing. Features vector-based pattern generation for sharp edges and small file sizes (~100KB vs 20MB).
 
-![Version](https://img.shields.io/badge/version-1.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+## Features
 
-## ✨ Features
+- **Vector-Based Generation**: Sharp, clean edges perfect for 3D printing (99.5% file size reduction)
+- **Real-Time 3D Preview**: View actual mesh geometry with interactive rotation
+- **Pattern Controls**: Customize symmetry, complexity, and pattern types while maintaining seed-based randomization
+- **Optimized for FDM Printing**: Minimum 0.25mm features for 0.2mm nozzles
+- **Professional Finish**: Chamfered edges for comfort and aesthetic appeal
+- **Multiple Export Formats**: 3MF and GLB file export
 
-- **🎨 Vector-Based Generation** - Sharp, precise geometry (99.5% smaller files than raster)
-- **⚡ Real-time 3D Preview** - See exactly what you'll print
-- **🖨️ Print-Optimized** - Designed for 0.2mm nozzles and FDM printing
-- **🎯 Chamfered Edges** - Professional finish, comfortable to wear
-- **🔄 Infinite Variations** - Reproducible with seed-based generation
-- **📦 Multi-Material Ready** - Exports separate base and relief for AMS/MMU
+## Pattern Options
 
-## 🚀 Quick Start
+- **Symmetry**: 6-fold, 8-fold, 12-fold, or random
+- **Complexity**: 1-5 elements per pattern
+- **Pattern Types**: Rings, Rays, Petals, Dots (toggle individually)
+- **Dimensions**: 8-25mm diameter, 1-4mm height, 0.2-2mm relief depth
 
-### Local Development
+## Quick Start with Docker (Recommended)
 
-**Backend:**
+### Prerequisites
+- Docker and Docker Compose installed
+- (Optional) SWAG for SSL/reverse proxy
+
+### Deploy
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd earring_generator
+
+# Build and start
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+Access at `http://localhost:8080`
+
+For integration with SWAG and SSL setup, see [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+
+## Local Development
+
+See [LOCAL_SETUP.md](LOCAL_SETUP.md) for running without Docker.
+
+### Backend (Python/Flask)
+
 ```bash
 cd backend
 pip install -r requirements.txt
 python app.py
 ```
 
-**Frontend:**
+Backend runs on `http://localhost:5000`
+
+### Frontend (React/Vite)
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173`
+Frontend runs on `http://localhost:5173`
 
-### Deploy to Render.com (Free)
+## Project Structure
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete instructions.
+```
+earring_generator/
+├── backend/
+│   ├── app.py                  # Flask API server
+│   ├── vector_generator.py     # Pattern generation (Shapely)
+│   ├── vector_exporter.py      # 3D mesh creation (Trimesh)
+│   ├── vector_rasterizer.py    # PNG preview conversion
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx            # Main application
+│   │   ├── components/
+│   │   │   ├── Viewer.jsx     # 3D viewer (React Three Fiber)
+│   │   │   └── Controls.jsx   # Pattern controls UI
+│   │   └── main.jsx
+│   └── package.json
+├── deployment/
+│   ├── docker-nginx.conf      # Nginx config for container
+│   └── supervisord.conf       # Process manager config
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
 
-Quick deploy:
-1. Push to GitHub
-2. Go to https://render.com
-3. Click "New Blueprint Instance"
-4. Connect your repo - done! ✨
+## Technology Stack
 
-## 📐 Technical Details
+### Backend
+- **Flask**: Web framework with CORS support
+- **Shapely**: 2D polygon operations and boolean geometry
+- **Trimesh**: 3D mesh creation and extrusion
+- **Pillow**: Image processing for 2D previews
+- **NumPy**: Numerical operations
 
-### Architecture
-- **Frontend:** React + Vite + Three.js
-- **Backend:** Python Flask + Shapely + Trimesh
-- **Generation:** Vector-based 2D polygon → 3D extrusion
+### Frontend
+- **React**: UI framework
+- **Vite**: Build tool and dev server
+- **React Three Fiber**: 3D rendering with Three.js
+- **@react-three/drei**: 3D helpers and controls
+- **Tailwind CSS**: Styling
 
-### File Sizes
-- **Raster approach:** ~20MB per earring ❌
-- **Vector approach:** ~100KB per earring ✅
+## API Endpoints
 
-### Print Settings
-- **Nozzle:** 0.2mm
-- **Min line width:** 0.25mm
-- **Layer height:** 0.1-0.2mm
-- **Material:** PLA, PETG, ABS (dual-color)
+### GET /api/preview
+Returns PNG preview of the 2D pattern.
 
-## 🎯 Pattern Optimization
+**Query Parameters:**
+- `seed`: Pattern seed (string)
+- `diameter`: Diameter in mm (float)
+- `symmetry`: 6, 8, 12, or "random" (optional)
+- `complexity`: 1-5 (optional)
+- `pattern_types`: Comma-separated list (optional)
+- `line_thickness`: "min,max" in mm (optional)
 
-Patterns are optimized for FDM printing:
-- Minimum feature size: 0.25mm (safe for 0.2mm nozzles)
-- Line thickness: 0.25-0.5mm
-- Chamfered top edges: 0.15mm bevel
-- Hidden overlap: 0.05mm embedded adhesion
+### GET /api/preview3d
+Returns GLB (binary glTF) 3D mesh for real-time preview.
 
-## 📝 Parameters
+**Query Parameters:** Same as `/api/preview` plus:
+- `height`: Total height in mm (float)
+- `relief_depth`: Relief depth in mm (float)
 
-- **Diameter:** 8-25mm
-- **Height:** 1-4mm
-- **Relief Depth:** 0.2-2mm
-- **Seed:** Any string (for reproducibility)
+### POST /api/export
+Exports 3MF file for 3D printing.
 
-## 🔧 Technology Stack
+**Request Body (JSON):**
+```json
+{
+  "seed": "abc123",
+  "diameter": 12.0,
+  "height": 2.0,
+  "relief_depth": 0.8,
+  "symmetry": 8,
+  "complexity": 4,
+  "pattern_types": ["ring", "ray", "petal_curve"],
+  "line_thickness": [0.25, 0.5]
+}
+```
 
-**Backend:**
-- Flask 3.0
-- Shapely 2.0 (2D geometry)
-- Trimesh 4.0 (3D mesh operations)
-- NumPy, Pillow, SciPy
+## Architecture Highlights
 
-**Frontend:**
-- React 19
-- Vite 7
-- Three.js + React Three Fiber
-- Tailwind CSS
+### Vector-Based Approach
+- Generates 2D polygons using Shapely (not raster heightmaps)
+- Extrudes polygons to 3D using Trimesh
+- Results: 98%+ vertex reduction, perfectly sharp edges
+- File sizes: <100KB (down from ~20MB)
 
-## 📦 Export Formats
+### Pattern Generation
+- Seed-based randomization for reproducibility
+- User constraints (symmetry, complexity, types)
+- Adaptive quality based on diameter (quad_segs)
+- Radial symmetry with component layering
 
-- **3MF:** Multi-material 3D printing (recommended)
-- **GLB:** Web preview format
+### 3D Mesh Creation
+- Base cylinder + relief pattern extrusion
+- 0.15mm chamfer on relief edges
+- 0.05mm overlap for print adhesion (hidden internally)
+- Watertight mesh validation
 
-## 🎨 Pattern Types
+## Deployment Options
 
-- **Rings:** Concentric circles
-- **Rays:** Radial lines
-- **Petals:** Circular patterns
-- **Dots:** Ring arrangements
-- **Custom combinations** with 6, 8, or 12-fold symmetry
+- **Docker + SWAG**: See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+- **Raspberry Pi**: See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - works with SWAG
+- **Local Development**: See [LOCAL_SETUP.md](LOCAL_SETUP.md)
 
-## 🤝 Contributing
+## Development
 
-Contributions welcome! This is a personal project but feel free to fork and adapt.
+### Environment Variables
+- `USE_VECTOR_GENERATOR=true`: Enable vector mode (default)
+- `PYTHONUNBUFFERED=1`: Better logging
 
-## 📄 License
+### Testing Pattern Generation
+```bash
+cd backend
+python vector_generator.py  # Test vector generation
+python vector_rasterizer.py # Test PNG conversion
+```
 
-MIT License - feel free to use for personal or commercial projects.
+## Performance
 
-## 🙏 Acknowledgments
+- Pattern generation: 0.5-2 seconds
+- 3D mesh creation: 1-3 seconds
+- File sizes: 50-100KB (3MF format)
+- Vertices: 5,000-20,000 (vs 1M+ with raster)
 
-Built with modern web technologies and optimized for real-world 3D printing.
+## Print Settings Recommendations
 
----
+- **Layer height**: 0.1-0.2mm
+- **Nozzle**: 0.2mm or larger
+- **Material**: PLA, PETG, or resin
+- **Infill**: 100% (small part)
+- **Supports**: None needed
+- **Bed adhesion**: Brim recommended for small contact area
 
-**Happy Printing! 🎨✨**
+## Contributing
+
+Feel free to open issues or submit pull requests.
+
+## License
+
+MIT License

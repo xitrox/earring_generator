@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Viewer from './components/Viewer';
 import Controls from './components/Controls';
+import { apiUrl } from './config';
 
 function App() {
   const [params, setParams] = useState({
@@ -31,7 +32,7 @@ function App() {
         line_thickness: params.line_thickness.join(','),
         t: Date.now(),
       });
-      const url = `/api/preview?${urlParams}`;
+      const url = apiUrl(`/api/preview?${urlParams}`);
       const res = await fetch(url);
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -65,7 +66,7 @@ function App() {
   const handleExport = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/export', {
+      const response = await fetch(apiUrl('/api/export'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
