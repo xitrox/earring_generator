@@ -16,8 +16,8 @@ function App() {
   const fetchPreview = useCallback(async () => {
     setLoading(true);
     try {
-      // Add timestamp to prevent caching
-      const url = `/api/preview?seed=${params.seed}&t=${Date.now()}`;
+      // Add timestamp to prevent caching and pass diameter for vector generation
+      const url = `/api/preview?seed=${params.seed}&diameter=${params.diameter}&t=${Date.now()}`;
       // In a real app we might fetch the image blob to control caching better
       const res = await fetch(url);
       const blob = await res.blob();
@@ -28,7 +28,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [params.seed]);
+  }, [params.seed, params.diameter]);
 
   useEffect(() => {
     fetchPreview();

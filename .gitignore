@@ -8,4 +8,8 @@ dist/
 *.zip
 *.stl
 *.3mf
+*.glb
 backend/debug_export.py
+test_*.png
+.vscode/
+.idea/
