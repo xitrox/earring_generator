@@ -51,7 +51,13 @@ frontend/dist/
 *.glb
 test_*.png
 
-# Deployment files (not needed in image)
-deployment/
+# Deployment documentation (not needed in image)
+deployment/*.service
+deployment/*.sh
+deployment/docker-nginx.conf
+deployment/supervisord.conf
+deployment/swag-*.conf
 LOCAL_SETUP.md
 RASPBERRY_PI_SETUP.md
+SETUP.md
+DOCKER_DEPLOYMENT.md
