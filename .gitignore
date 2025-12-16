@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+dist/
+.env
+*.zip
+*.stl
+*.3mf
+backend/debug_export.py
